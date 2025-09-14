@@ -1,0 +1,50 @@
+# PHP
+*.log
+*.tmp
+/vendor/
+
+# Database
+*.sql.backup
+*.dump
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Uploaded files (keep directory structure but ignore actual uploads)
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.gif
+uploads/*.webp
+!uploads/README.txt
+!uploads/logo_animal.png
+!uploads/animal.jpg
+
+# API uploads
+api/uploads/*.jpg
+api/uploads/*.jpeg
+api/uploads/*.png
+api/uploads/*.gif
+api/uploads/*.webp
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
