@@ -11,7 +11,7 @@ export function AdminTabs({ items }: { items: NavItem[] }) {
     <nav aria-label="Admin" className="no-print -mx-4 overflow-x-auto border-b border-line px-4 sm:mx-0 sm:px-0">
       <ul className="flex min-w-max gap-1 py-2">
         {items.map((i) => (
-          <li key={i.href}><Link href={i.href} className="nav-link" aria-current={active(i.href) ? "page" : undefined}>{i.label}</Link></li>
+          <li key={i.href}><Link href={i.href} className="nav-link" aria-current={active(i.href) ? "page" : undefined}>{i.label}{!!i.badge && <span className="ms-1.5 rounded-full bg-accent px-1.5 text-xs font-bold text-bg" aria-label={`${i.badge}`}>{i.badge}</span>}</Link></li>
         ))}
       </ul>
     </nav>

@@ -62,10 +62,7 @@ export type TrackState =
       };
     };
 
-export async function trackRequest(_prev: TrackState | null, fd: FormData): Promise<TrackState> {
-  const code = str(fd, "code").trim().toUpperCase();
-  const phone = normalizePhone(str(fd, "phone"));
-  if (!rateLimit(`track:${await clientIp()}`, 15, 10 * 60_000)) return { found: false, error: "tooMany", code };
+async function buildTrackState(code: string, phone: string | null): Promise<TrackState> {
   if (!TRACKING_CODE_RE.test(code) || !phone) return { found: false, error: "notFound", code };
 
   const row = await db.query.requests.findFirst({
@@ -82,8 +79,20 @@ export async function trackRequest(_prev: TrackState | null, fd: FormData): Prom
       createdAt: row.createdAt.toISOString(), eta: row.eta?.toISOString() ?? null, outcome: row.outcome,
       rescuer: row.rescuer && row.status !== "pending" ? { name: row.rescuer.name, phone: row.rescuer.phone } : null,
       events: [...row.events]
-        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id - b.id)
         .map((e) => ({ type: e.type, message: e.type === "assigned" || e.type === "reassigned" ? null : e.message, at: e.createdAt.toISOString() })),
     },
   };
+}
+
+export async function trackRequest(_prev: TrackState | null, fd: FormData): Promise<TrackState> {
+  const code = str(fd, "code").trim().toUpperCase();
+  if (!rateLimit(`track:${await clientIp()}`, 15, 10 * 60_000)) return { found: false, error: "tooMany", code };
+  return buildTrackState(code, normalizePhone(str(fd, "phone")));
+}
+
+/** Called every few seconds by the tracking page to keep the timeline live. */
+export async function refreshTrack(code: string, phone: string): Promise<TrackState> {
+  if (!rateLimit(`track-live:${await clientIp()}`, 90, 10 * 60_000)) return { found: false, error: "tooMany", code };
+  return buildTrackState(String(code).toUpperCase(), normalizePhone(String(phone)));
 }
