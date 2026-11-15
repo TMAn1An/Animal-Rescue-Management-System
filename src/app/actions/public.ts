@@ -7,7 +7,7 @@ import { clientIp } from "@/lib/client-ip";
 import { rateLimit } from "@/lib/rate-limit";
 import { normalizePhone } from "@/lib/phone";
 import { reportSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
-import { generateTrackingCode, TRACKING_CODE_RE } from "@/lib/workflow";
+import { generateTrackingCode, TRACKING_CODE_RE, validCoords, validPhotoDataUrl } from "@/lib/workflow";
 
 export type ReportState = { errors?: FieldErrors; formError?: string; values?: Record<string, string> };
 
@@ -24,6 +24,11 @@ export async function submitReport(_prev: ReportState, fd: FormData): Promise<Re
   const parsed = reportSchema.safeParse(values);
   if (!parsed.success) return { errors: toFieldErrors(parsed.error), values };
   const d = parsed.data;
+
+  const photo = str(fd, "photo");
+  if (photo && !validPhotoDataUrl(photo)) return { errors: { photo: "photo" }, values };
+  const lat = Number(str(fd, "lat")), lng = Number(str(fd, "lng"));
+  const hasCoords = str(fd, "lat") !== "" && validCoords(lat, lng);
 
   let code = "";
   for (let attempt = 0; attempt < 5 && !code; attempt++) {
@@ -42,6 +47,7 @@ export async function submitReport(_prev: ReportState, fd: FormData): Promise<Re
       .values({
         code, reporterId: reporter.id, petType: d.petType, condition: d.condition, area: d.area, address: d.address,
         description: d.description, note: d.note ?? null, donationAmount: d.donation ?? null,
+        photo: photo || null, lat: hasCoords ? lat : null, lng: hasCoords ? lng : null,
       })
       .returning({ id: schema.requests.id });
     await tx.insert(schema.requestEvents).values({ requestId: request.id, type: "created" });

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
-import { ConditionBadge, StatusBadge } from "@/components/badges";
+import { ConditionBadge, OverdueBadge, StatusBadge } from "@/components/badges";
+import { isOverdue } from "@/lib/workflow";
 import { PetIcon } from "@/components/pet-icon";
 import { CONDITIONS, STATUSES } from "@/db/schema";
 import { getT } from "@/i18n/server";
@@ -63,7 +64,7 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
                   <td><span className="flex items-center gap-2"><PetIcon type={r.petType} size={16} />{t.pet[r.petType]} <ConditionBadge condition={r.condition} t={t} /></span></td>
                   <td>{r.area}</td>
                   <td>{r.reporterName}<span className="block text-xs text-muted">{r.reporterPhone}</span></td>
-                  <td><StatusBadge status={r.status} t={t} /></td>
+                  <td><span className="flex flex-wrap gap-1"><StatusBadge status={r.status} t={t} />{isOverdue(r) && <OverdueBadge label={t.admin.overdue} />}</span></td>
                   <td>{r.rescuerName ?? "—"}</td>
                   <td className="whitespace-nowrap text-muted">{formatDateTime(r.createdAt, locale)}</td>
                 </tr>

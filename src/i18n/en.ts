@@ -1,6 +1,6 @@
 const en = {
   brand: "Animal Rescue Dhaka",
-  nav: { home: "Home", report: "Report an animal", track: "Track a request", admin: "Staff login", dashboard: "Dashboard", requests: "Requests", rescuers: "Rescuers", reporters: "Reporters", reports: "Reports", logout: "Sign out", account: "Account", skip: "Skip to content", language: "Language", menu: "Menu" },
+  nav: { team: "Team", home: "Home", report: "Report an animal", track: "Track a request", admin: "Staff login", dashboard: "Dashboard", requests: "Requests", rescuers: "Rescuers", reporters: "Reporters", reports: "Reports", logout: "Sign out", account: "Account", skip: "Skip to content", language: "Language", menu: "Menu" },
   home: {
     eyebrow: "Dhaka's volunteer rescue network",
     title: "Spotted an animal in trouble? We'll get help to it.",
@@ -31,6 +31,8 @@ const en = {
     submit: "Submit report", submitting: "Submitting…",
     conditionHelp: { normal: "Looks healthy or needs food/shelter", moderate: "Hurt or distressed but mobile", serious: "Severely injured, unable to move or in danger" },
     honeypot: "Leave this field empty",
+    photo: "Photo (optional)", photoHelp: "A clear photo helps the rescuer find and treat the animal. It is shrunk on your device before upload.", photoChoose: "Add a photo", photoRemove: "Remove photo", photoBad: "That file couldn't be used as a photo. Try a different image.",
+    useLocation: "Use my current location", locationSaved: "Location attached. Thank you!", locationDenied: "Couldn't get your location. You can still describe it in words.", locationRemove: "Remove",
   },
   success: {
     title: "Report received", body: "Thank you. Keep this tracking code to check progress at any time.",
@@ -73,6 +75,9 @@ const en = {
     reportsTitle: "Reports & analytics", range: "Last 30 days", byStatus: "Requests by status", byPet: "By animal", byCondition: "By condition", byArea: "Top areas", perDay: "Requests per day",
     avgResponse: "Avg. time to assign", avgRescue: "Avg. time to complete", donations: "Pledged donations", completionRate: "Completion rate", hours: "h", notEnough: "Not enough data",
     exportCsv: "Export CSV",
+    photo: "Photo", map: "Map", openMap: "Open in Maps", overdue: "Overdue", overdueHelp: "Waiting longer than expected for this severity.",
+    possibleDuplicate: "Possible duplicate", possibleDuplicateBody: "Similar open requests in the same area from the last 48 hours:", openJobs: "open",
+    teamTitle: "Team", teamIntro: "Everyone here can sign in to this console.", addStaff: "Add team member", staffName: "Name", staffEmail: "Email", staffPassword: "Temporary password", staffPasswordHelp: "At least 10 characters. They can change it in Account.", staffAdded: "Team member added.", staffRemoved: "Team member removed.", you: "You", joined: "Joined", removeStaff: "Remove", cannotRemoveSelf: "You can't remove your own account.", cannotRemoveLast: "At least one team member must remain.",
   },
   account: {
     title: "Account", subtitle: "Signed in as", changePassword: "Change password", current: "Current password", next: "New password", confirm: "Confirm new password",
@@ -87,7 +92,7 @@ const en = {
     address: "Add a street or landmark (3–255 characters).", description: "Please describe the situation (10–2000 characters).",
     donation: "Enter a donation of 0 or more.", tooMany: "Too many requests from your network. Please try again later.",
     eta: "Choose a time that is not in the past.", rescuer: "Choose an active rescuer.", email: "Enter a valid email.", nid: "National ID is too long.",
-    duplicatePhone: "This phone number is already in use.",
+    duplicatePhone: "This phone number is already in use.", photo: "That photo couldn't be used.", staffEmailTaken: "That email already has an account.", password: "Password must be at least 10 characters.",
   },
 } as const;
 

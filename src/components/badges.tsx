@@ -1,4 +1,4 @@
-import { CircleCheck, CircleDashed, CircleX, UserCheck } from "lucide-react";
+import { AlarmClock, CircleCheck, CircleDashed, CircleX, UserCheck } from "lucide-react";
 import type { Condition, Status } from "@/db/schema";
 import type { Dict } from "@/i18n";
 
@@ -15,4 +15,12 @@ export function StatusBadge({ status, t }: { status: Status; t: Dict }) {
 
 export function ConditionBadge({ condition, t }: { condition: Condition; t: Dict }) {
   return <span className={`badge badge-${condition}`}>{t.condition[condition]}</span>;
+}
+
+export function OverdueBadge({ label, title }: { label: string; title?: string }) {
+  return (
+    <span className="badge badge-serious" title={title}>
+      <AlarmClock size={13} aria-hidden /> {label}
+    </span>
+  );
 }

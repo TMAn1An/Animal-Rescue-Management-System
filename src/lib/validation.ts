@@ -63,3 +63,9 @@ export function toFieldErrors(error: z.ZodError): FieldErrors {
   }
   return out;
 }
+
+export const staffSchema = z.object({
+  name: z.string().trim().min(2, "name").max(100, "name"),
+  email: z.string().trim().toLowerCase().pipe(z.email("email")),
+  password: z.string().min(10, "password").max(200, "password"),
+});

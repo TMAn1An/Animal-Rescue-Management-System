@@ -56,6 +56,11 @@ export const requests = sqliteTable(
     description: text("description").notNull(),
     note: text("note"),
     donationAmount: real("donation_amount"),
+    /** Optional JPEG data URL (resized in the browser, ≤ ~400 KB). */
+    photo: text("photo"),
+    /** Optional GPS coordinates captured with the browser's location prompt. */
+    lat: real("lat"),
+    lng: real("lng"),
     status: text("status", { enum: STATUSES }).notNull().default("pending"),
     eta: integer("eta", { mode: "timestamp" }),
     assignedAt: integer("assigned_at", { mode: "timestamp" }),

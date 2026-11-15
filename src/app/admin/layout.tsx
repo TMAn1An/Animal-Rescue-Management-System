@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const items = [
     { href: "/admin", label: t.nav.dashboard }, { href: "/admin/requests", label: t.nav.requests, badge: pulse.pending },
     { href: "/admin/rescuers", label: t.nav.rescuers }, { href: "/admin/reporters", label: t.nav.reporters },
-    { href: "/admin/reports", label: t.nav.reports },
+    { href: "/admin/reports", label: t.nav.reports }, { href: "/admin/staff", label: t.nav.team },
   ];
   return (
     <>

@@ -1,12 +1,13 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+import { and, count, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import { parseDhakaLocal } from "@/lib/format";
 import { requireStaff } from "@/lib/session";
-import { reporterSchema, rescuerSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
+import { reporterSchema, rescuerSchema, staffSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
 import { canTransition } from "@/lib/workflow";
 
 export type ActionResult = { ok?: boolean; error?: string; errors?: FieldErrors };
@@ -164,4 +165,27 @@ export async function deleteReporter(fd: FormData) {
   await db.delete(schema.reporters).where(eq(schema.reporters.id, Number(fd.get("id"))));
   revalidatePath("/admin", "layout");
   redirect("/admin/reporters?deleted=1");
+}
+
+/* ---------- Team ---------- */
+
+export async function createStaff(_p: ActionResult, fd: FormData): Promise<ActionResult> {
+  await requireStaff();
+  const parsed = staffSchema.safeParse({ name: str(fd, "name"), email: str(fd, "email"), password: String(fd.get("password") ?? "") });
+  if (!parsed.success) return { errors: toFieldErrors(parsed.error) };
+  const [clash] = await db.select({ id: schema.staff.id }).from(schema.staff).where(eq(schema.staff.email, parsed.data.email));
+  if (clash) return { errors: { email: "staffEmailTaken" } };
+  await db.insert(schema.staff).values({ name: parsed.data.name, email: parsed.data.email, passwordHash: await bcrypt.hash(parsed.data.password, 12) });
+  revalidatePath("/admin/staff");
+  return { ok: true };
+}
+
+export async function deleteStaff(fd: FormData) {
+  const me = await requireStaff();
+  const id = Number(fd.get("id"));
+  const [{ n }] = await db.select({ n: count() }).from(schema.staff);
+  if (id === me.id || n <= 1) redirect("/admin/staff?error=1");
+  await db.delete(schema.staff).where(eq(schema.staff.id, id));
+  revalidatePath("/admin/staff");
+  redirect("/admin/staff?removed=1");
 }
