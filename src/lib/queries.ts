@@ -1,5 +1,5 @@
 import "server-only";
-import { and, count, desc, eq, gte, like, or, sql, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, ne, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { CONDITIONS, STATUSES, type Condition, type Status } from "@/db/schema";
 import { compareByUrgency } from "./workflow";
@@ -130,4 +130,22 @@ export async function analytics(days = 30) {
     donations: rows.reduce((s, r) => s + (r.donationAmount ?? 0), 0),
     completionRate: rows.length ? done.length / rows.length : null,
   };
+}
+
+/** Open requests of the same kind in the same area within 48h: likely the same animal reported twice. */
+export async function findPossibleDuplicates(r: { id: number; area: string; petType: schema.PetType; createdAt: Date }) {
+  const since = new Date(r.createdAt.getTime() - 48 * 3_600_000);
+  return db
+    .select({ id: requests.id, code: requests.code, status: requests.status, createdAt: requests.createdAt })
+    .from(requests)
+    .where(and(
+      ne(requests.id, r.id), eq(requests.area, r.area), eq(requests.petType, r.petType),
+      inArray(requests.status, ["pending", "assigned"]), gte(requests.createdAt, since),
+    ))
+    .orderBy(desc(requests.createdAt))
+    .limit(5);
+}
+
+export async function listStaff() {
+  return db.select({ id: schema.staff.id, name: schema.staff.name, email: schema.staff.email, createdAt: schema.staff.createdAt }).from(schema.staff).orderBy(schema.staff.createdAt);
 }

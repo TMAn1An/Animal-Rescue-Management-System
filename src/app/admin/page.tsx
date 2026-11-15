@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, CircleCheck, CircleDashed, ClipboardList, UserCheck } from "lucide-react";
-import { ConditionBadge } from "@/components/badges";
+import { ConditionBadge, OverdueBadge } from "@/components/badges";
+import { isOverdue } from "@/lib/workflow";
 import { PetIcon } from "@/components/pet-icon";
 import { getT } from "@/i18n/server";
 import { formatNumber, timeAgo } from "@/lib/format";
@@ -48,7 +49,7 @@ export default async function Dashboard() {
                   <Link href={`/admin/requests/${r.id}`} className="flex items-center gap-3 py-3 hover:bg-surface-2 -mx-2 px-2 rounded-lg">
                     <span className="grid size-10 place-items-center rounded-lg bg-surface-2 text-primary"><PetIcon type={r.petType} /></span>
                     <span className="min-w-0 flex-1"><span className="block font-semibold">{t.pet[r.petType]} · {r.area}</span><span className="text-sm text-muted">{r.code} · {timeAgo(r.createdAt, locale)}</span></span>
-                    <ConditionBadge condition={r.condition} t={t} />
+                    <span className="flex flex-wrap justify-end gap-1"><ConditionBadge condition={r.condition} t={t} />{isOverdue({ ...r, status: "pending" }) && <OverdueBadge label={t.admin.overdue} />}</span>
                     <ArrowRight size={16} aria-hidden className="text-muted rtl:rotate-180" />
                   </Link>
                 </li>

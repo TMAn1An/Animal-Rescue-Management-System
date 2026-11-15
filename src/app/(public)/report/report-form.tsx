@@ -4,6 +4,8 @@ import { useActionState } from "react";
 import { submitReport, type ReportState } from "@/app/actions/public";
 import { Field, describedBy } from "@/components/field";
 import { SubmitButton } from "@/components/submit-button";
+import { PhotoField } from "@/components/photo-field";
+import { LocationField } from "@/components/location-field";
 import { PET_TYPES, CONDITIONS } from "@/db/schema";
 import { DHAKA_AREAS } from "@/lib/areas";
 import type { Dict } from "@/i18n";
@@ -59,6 +61,7 @@ export function ReportForm({ t }: { t: Dict }) {
         <Field id="description" label={t.report.description} required error={err("description")}>
           <textarea {...common("description")} className="input" required minLength={10} maxLength={2000} defaultValue={v.description} placeholder={t.report.descriptionPh} />
         </Field>
+        <PhotoField labels={{ choose: t.report.photo, remove: t.report.photoRemove, bad: t.report.photoBad }} help={t.report.photoHelp} initialError={err("photo")} />
         <Field id="note" label={t.report.note} error={err("note")}>
           <textarea {...common("note")} className="input !min-h-20" maxLength={1000} defaultValue={v.note} placeholder={t.report.notePh} />
         </Field>
@@ -77,6 +80,7 @@ export function ReportForm({ t }: { t: Dict }) {
             <input {...common("address")} className="input" required minLength={3} maxLength={255} autoComplete="street-address" defaultValue={v.address} placeholder={t.report.addressPh} />
           </Field>
         </div>
+        <LocationField labels={{ use: t.report.useLocation, saved: t.report.locationSaved, denied: t.report.locationDenied, remove: t.report.locationRemove }} />
         <Field id="donation" label={t.report.donation} help={t.report.donationHelp} error={err("donation")} className="sm:max-w-sm">
           <input {...common("donation", true)} className="input" type="number" inputMode="decimal" min={0} max={1000000} step="any" defaultValue={v.donation} />
         </Field>

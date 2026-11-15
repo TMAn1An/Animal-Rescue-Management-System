@@ -35,3 +35,27 @@ export function generateTrackingCode(length = 6): string {
 }
 
 export const TRACKING_CODE_RE = /^AR-[2-9A-HJ-NP-Z]{6}$/;
+
+/** How long a still-pending request may wait before staff should be nudged, by severity. */
+const SLA_MINUTES: Record<Condition, number> = { serious: 30, moderate: 120, normal: 24 * 60 };
+
+export function isOverdue(
+  r: { status: Status; condition: Condition; createdAt: Date },
+  now: number = Date.now(),
+): boolean {
+  return r.status === "pending" && now - r.createdAt.getTime() > SLA_MINUTES[r.condition] * 60_000;
+}
+
+/** Bangladesh bounding box: rejects obviously bogus coordinates from the client. */
+export function validCoords(lat: number, lng: number): boolean {
+  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= 20.5 && lat <= 26.7 && lng >= 88 && lng <= 92.7;
+}
+
+/** A JPEG data URL produced by our in-browser resizer: right prefix, JPEG magic bytes, bounded size. */
+export function validPhotoDataUrl(v: string, maxChars = 400_000): boolean {
+  if (v.length > maxChars || !v.startsWith("data:image/jpeg;base64,")) return false;
+  const b64 = v.slice("data:image/jpeg;base64,".length);
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(b64)) return false;
+  const head = atob(b64.slice(0, 8));
+  return head.charCodeAt(0) === 0xff && head.charCodeAt(1) === 0xd8 && head.charCodeAt(2) === 0xff;
+}

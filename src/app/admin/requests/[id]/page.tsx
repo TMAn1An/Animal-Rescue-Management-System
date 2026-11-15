@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, FileText, Phone, Printer } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileText, MapPin, Phone, Printer, TriangleAlert } from "lucide-react";
 import { addNote, assignRescuer, completeRequest, deleteRequest, moveRequest } from "@/app/actions/admin";
 import { ActionForm } from "@/components/action-form";
 import { DeleteButton } from "@/components/delete-button";
-import { ConditionBadge, StatusBadge } from "@/components/badges";
+import { ConditionBadge, OverdueBadge, StatusBadge } from "@/components/badges";
 import { Field } from "@/components/field";
 import { PetIcon } from "@/components/pet-icon";
 import { SubmitButton } from "@/components/submit-button";
-import { db, schema } from "@/db";
 import { getT } from "@/i18n/server";
 import { formatDateTime, formatMoney, toDhakaLocalInput } from "@/lib/format";
-import { getRequestDetail } from "@/lib/queries";
-import { eq } from "drizzle-orm";
+import { findPossibleDuplicates, getRequestDetail, listRescuers } from "@/lib/queries";
+import { isOverdue } from "@/lib/workflow";
 
 export const metadata: Metadata = { title: "Request" };
 export const dynamic = "force-dynamic";
@@ -24,7 +23,14 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
   const r = await getRequestDetail(id);
   if (!r) notFound();
   const { t, locale } = await getT();
-  const rescuers = await db.select().from(schema.rescuers).where(eq(schema.rescuers.active, true)).orderBy(schema.rescuers.name);
+  const norm = (v: string | null | undefined) => (v ?? "").trim().toLowerCase();
+  // Active rescuers from the same area first, then the least busy.
+  const rescuers = (await listRescuers())
+    .filter((x) => x.active)
+    .sort((a, b) => Number(norm(b.area) === norm(r.area)) - Number(norm(a.area) === norm(r.area)) || a.open - b.open || a.name.localeCompare(b.name));
+  const duplicates = await findPossibleDuplicates(r);
+  const overdue = isOverdue(r);
+  const hasMap = r.lat != null && r.lng != null;
   const events = [...r.events].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id - a.id);
   const minEta = toDhakaLocalInput(new Date());
   const canAssign = r.status === "pending" || r.status === "assigned";
@@ -42,7 +48,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
 
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="flex items-center gap-3"><span className="font-mono text-3xl font-extrabold tracking-widest text-primary">{r.code}</span><StatusBadge status={r.status} t={t} /></p>
+          <p className="flex items-center gap-3"><span className="font-mono text-3xl font-extrabold tracking-widest text-primary">{r.code}</span><StatusBadge status={r.status} t={t} />{overdue && <OverdueBadge label={t.admin.overdue} title={t.admin.overdueHelp} />}</p>
           <p className="mt-1 flex items-center gap-2 text-muted"><PetIcon type={r.petType} />{t.pet[r.petType]} <ConditionBadge condition={r.condition} t={t} /> · {formatDateTime(r.createdAt, locale)}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -52,14 +58,24 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
         </div>
       </header>
 
+      {duplicates.length > 0 && (
+        <p role="note" className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-accent bg-accent-soft p-4 text-accent">
+          <TriangleAlert size={18} aria-hidden /><strong>{t.admin.possibleDuplicate}.</strong> {t.admin.possibleDuplicateBody}
+          {duplicates.map((d) => <Link key={d.id} href={`/admin/requests/${d.id}`} className="font-mono font-bold underline">{d.code}</Link>)}
+        </p>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="space-y-6 lg:col-span-3">
           <section className="card p-6" aria-labelledby="details">
             <h2 id="details" className="mb-4 text-lg font-bold">{t.admin.details}</h2>
             <dl className="grid gap-4 sm:grid-cols-2 [&_dt]:text-xs [&_dt]:font-semibold [&_dt]:uppercase [&_dt]:tracking-wide [&_dt]:text-muted [&_dd]:mt-0.5">
               <div><dt>{t.admin.reporter}</dt><dd>{r.reporter.name}<a href={`tel:${r.reporter.phone}`} className="mt-0.5 flex items-center gap-1.5 text-primary"><Phone size={14} aria-hidden />{r.reporter.phone}</a></dd></div>
-              <div><dt>{t.admin.location}</dt><dd>{r.area}<span className="block text-muted">{r.address}</span></dd></div>
+              <div><dt>{t.admin.location}</dt><dd>{r.area}<span className="block text-muted">{r.address}</span>{hasMap && <a href={`https://www.google.com/maps?q=${r.lat},${r.lng}`} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1.5 font-semibold text-primary hover:underline"><MapPin size={14} aria-hidden />{t.admin.openMap}</a>}</dd></div>
               <div className="sm:col-span-2"><dt>{t.report.description}</dt><dd className="whitespace-pre-line">{r.description}</dd></div>
+              {r.photo && (
+                <div className="sm:col-span-2"><dt>{t.admin.photo}</dt><dd>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={r.photo} alt="" className="mt-1 max-h-80 rounded-xl border border-line" /></dd></div>
+              )}
               {r.note && <div className="sm:col-span-2"><dt>{t.admin.noteLabel}</dt><dd className="whitespace-pre-line">{r.note}</dd></div>}
               <div><dt>{t.admin.donation}</dt><dd>{formatMoney(r.donationAmount, locale)}</dd></div>
               {r.rescuer && <div><dt>{t.track.rescuer}</dt><dd>{r.rescuer.name}<span className="block text-muted">{r.rescuer.phone}</span></dd></div>}
@@ -92,7 +108,7 @@ export default async function RequestDetail({ params }: { params: Promise<{ id: 
                   <Field id="rescuerId" label={t.admin.chooseRescuer} required>
                     <select id="rescuerId" name="rescuerId" className="input" required defaultValue={r.rescuerId ?? ""}>
                       <option value="" disabled>—</option>
-                      {rescuers.map((s) => <option key={s.id} value={s.id}>{s.name}{s.area ? ` · ${s.area}` : ""}</option>)}
+                      {rescuers.map((s) => <option key={s.id} value={s.id}>{s.name}{s.area ? ` · ${s.area}` : ""} · {s.open} {t.admin.openJobs}</option>)}
                     </select>
                   </Field>
                   <Field id="eta" label={t.admin.eta} required>

@@ -7,7 +7,7 @@ A modern web app that coordinates animal rescues across Dhaka. Anyone can report
 ## Features
 
 **Public**
-- Report an animal in under two minutes (no account), with Dhaka area picker, condition triage and optional donation pledge
+- Report an animal in under two minutes (no account), with Dhaka area picker, condition triage, optional photo (shrunk on-device), optional GPS location and donation pledge
 - Private tracking by code **+ phone number** with a live timeline, rescuer contact and estimated arrival
 - English and Bangla UI, light and dark themes, fully responsive and keyboard accessible
 
@@ -15,7 +15,9 @@ A modern web app that coordinates animal rescues across Dhaka. Anyone can report
 - Dashboard with a triage queue (serious cases first) and recent activity
 - Filterable, searchable, paginated request list
 - Assign / re-assign rescuers with ETA, complete with outcome, cancel, reopen, add public timeline notes
-- Manage rescuers and reporters; analytics for the last 30 days
+- Live updates: new-request toasts, pending badge and auto-refreshing lists
+- Overdue flags by severity, possible-duplicate warnings, rescuers sorted by area match and workload
+- Manage rescuers, reporters and team members; analytics for the last 30 days; CSV export
 - Printable reporter slip and rescuer receipt
 
 **Engineering**
