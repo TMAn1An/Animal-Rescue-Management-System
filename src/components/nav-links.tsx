@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 
-export type NavItem = { href: string; label: string };
+export type NavItem = { href: string; label: string; badge?: number };
 
 function isActive(pathname: string, href: string) {
   return href === "/" || href === "/admin" ? pathname === href : pathname === href || pathname.startsWith(href + "/");

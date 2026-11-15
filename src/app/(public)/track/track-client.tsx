@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Clock, Phone, UserRound } from "lucide-react";
-import { trackRequest, type TrackState } from "@/app/actions/public";
+import { refreshTrack, trackRequest, type TrackState } from "@/app/actions/public";
 import { Field } from "@/components/field";
 import { StatusBadge, ConditionBadge } from "@/components/badges";
 import { PetIcon } from "@/components/pet-icon";
@@ -12,13 +12,40 @@ import type { Dict, Locale } from "@/i18n";
 
 export function TrackClient({ t, locale, initialCode }: { t: Dict; locale: Locale; initialCode: string }) {
   const [state, action] = useActionState<TrackState | null, FormData>(trackRequest, null);
-  const view = state?.found ? state.view : null;
+  const [live, setLive] = useState<{ view: Extract<TrackState, { found: true }>["view"]; at: Date } | null>(null);
+  const creds = useRef({ code: "", phone: "" });
+  const view = live?.view ?? (state?.found ? state.view : null);
+  const settled = view?.status === "completed" || view?.status === "cancelled";
+
+  // Poll while the request is still open and the tab is visible.
+  useEffect(() => {
+    if (!view || settled || !creds.current.phone) return;
+    let stopped = false;
+    const poll = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const next = await refreshTrack(creds.current.code, creds.current.phone);
+        if (!stopped && next.found) setLive({ view: next.view, at: new Date() });
+      } catch { /* offline: try again next tick */ }
+    };
+    const id = setInterval(poll, 20_000);
+    const onVisible = () => poll();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { stopped = true; clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
+  }, [view?.code, settled]); // eslint-disable-line react-hooks/exhaustive-deps
   const error = state && !state.found ? (state.error === "tooMany" ? t.errors.tooMany : t.track.notFound) : null;
 
   return (
     <div className="space-y-8">
       {!view && (
-        <form action={action} className="card space-y-5 p-6">
+        <form
+          action={action} className="card space-y-5 p-6"
+          onSubmit={(e) => {
+            const fd = new FormData(e.currentTarget);
+            creds.current = { code: String(fd.get("code") ?? "").trim().toUpperCase(), phone: String(fd.get("phone") ?? "") };
+            setLive(null);
+          }}
+        >
           <Field id="code" label={t.track.code} required>
             <input id="code" name="code" className="input font-mono uppercase tracking-widest" required defaultValue={(state && !state.found && state.code) || initialCode} placeholder={t.track.codePh} maxLength={9} autoCapitalize="characters" autoComplete="off" spellCheck={false} />
           </Field>
@@ -32,6 +59,12 @@ export function TrackClient({ t, locale, initialCode }: { t: Dict; locale: Local
 
       {view && (
         <article className="card space-y-6 p-6 sm:p-8" aria-live="polite">
+          {!settled && (
+            <p className="flex items-center gap-2 text-xs font-semibold text-muted" aria-live="off">
+              <span className="size-2 animate-pulse rounded-full bg-success" aria-hidden /> {t.track.live}
+              {live && <span className="font-normal">· {t.track.updatedAt} {live.at.toLocaleTimeString(locale === "bn" ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>}
+            </p>
+          )}
           <header className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-mono text-2xl font-extrabold tracking-widest text-primary">{view.code}</p>

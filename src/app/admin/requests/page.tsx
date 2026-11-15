@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
 import { ConditionBadge, StatusBadge } from "@/components/badges";
 import { PetIcon } from "@/components/pet-icon";
 import { CONDITIONS, STATUSES } from "@/db/schema";
@@ -27,6 +27,7 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div><h1 className="text-3xl font-extrabold tracking-tight">{t.nav.requests}</h1><p className="text-muted">{total} {t.admin.resultCount}</p></div>
+        <a href={`/admin/requests/export${sp.status ? `?status=${sp.status}` : ""}`} className="btn btn-secondary btn-sm" download><Download size={15} aria-hidden />{t.admin.exportCsv}</a>
       </div>
 
       <form className="card grid gap-3 p-4 sm:grid-cols-[1fr_10rem_10rem_auto]" role="search">

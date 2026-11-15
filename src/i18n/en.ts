@@ -1,6 +1,6 @@
 const en = {
   brand: "Animal Rescue Dhaka",
-  nav: { home: "Home", report: "Report an animal", track: "Track a request", admin: "Staff login", dashboard: "Dashboard", requests: "Requests", rescuers: "Rescuers", reporters: "Reporters", reports: "Reports", logout: "Sign out", skip: "Skip to content", language: "Language", menu: "Menu" },
+  nav: { home: "Home", report: "Report an animal", track: "Track a request", admin: "Staff login", dashboard: "Dashboard", requests: "Requests", rescuers: "Rescuers", reporters: "Reporters", reports: "Reports", logout: "Sign out", account: "Account", skip: "Skip to content", language: "Language", menu: "Menu" },
   home: {
     eyebrow: "Dhaka's volunteer rescue network",
     title: "Spotted an animal in trouble? We'll get help to it.",
@@ -43,7 +43,7 @@ const en = {
     notFound: "We couldn't find a request matching that code and phone number.",
     timeline: "Progress", rescuer: "Assigned rescuer", eta: "Estimated arrival", outcome: "Outcome", reportedOn: "Reported on",
     pendingNote: "Your report is in the queue. We'll assign a rescuer shortly.",
-    back: "Search again",
+    back: "Search again", live: "Live updates on", updatedAt: "Updated",
   },
   status: { pending: "Pending", assigned: "Assigned", completed: "Completed", cancelled: "Cancelled" },
   condition: { normal: "Normal", moderate: "Moderate", serious: "Serious" },
@@ -74,6 +74,12 @@ const en = {
     avgResponse: "Avg. time to assign", avgRescue: "Avg. time to complete", donations: "Pledged donations", completionRate: "Completion rate", hours: "h", notEnough: "Not enough data",
     exportCsv: "Export CSV",
   },
+  account: {
+    title: "Account", subtitle: "Signed in as", changePassword: "Change password", current: "Current password", next: "New password", confirm: "Confirm new password",
+    hint: "At least 10 characters. Use a phrase only you know.", submit: "Update password", saved: "Password updated.",
+    errors: { current: "Current password is incorrect.", short: "New password must be at least 10 characters.", mismatch: "The two new passwords don't match.", same: "Choose a password different from the current one.", tooMany: "Too many attempts. Please wait a few minutes." },
+  },
+  live: { on: "Live", updated: "Updated", newRequest: "New rescue request", view: "View", dismiss: "Dismiss", pendingWaiting: "waiting" },
   common: { required: "Required", save: "Save", cancel: "Cancel", back: "Back", loading: "Loading…", error: "Something went wrong. Please try again.", yes: "Yes", no: "No", optional: "optional", currency: "৳", footer: "Built to help Dhaka's animals.", notFoundTitle: "Page not found", notFoundBody: "The page you're looking for doesn't exist or has moved.", goHome: "Go home" },
   errors: {
     name: "Please enter your name (2–100 characters).", phone: "Enter a valid Bangladeshi mobile number (01XXXXXXXXX).",

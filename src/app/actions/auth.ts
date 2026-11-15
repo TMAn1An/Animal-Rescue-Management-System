@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import { clientIp } from "@/lib/client-ip";
 import { rateLimit } from "@/lib/rate-limit";
-import { createSession, destroySession } from "@/lib/session";
+import { createSession, destroySession, requireStaff } from "@/lib/session";
 import { loginSchema } from "@/lib/validation";
 
 export type LoginState = { error?: "invalid" | "tooMany"; email?: string };
@@ -35,4 +35,24 @@ export async function login(_prev: LoginState, fd: FormData): Promise<LoginState
 export async function logout() {
   await destroySession();
   redirect("/login");
+}
+
+export type PasswordState = { error?: "current" | "short" | "mismatch" | "same" | "tooMany"; ok?: boolean };
+
+export async function changePassword(_prev: PasswordState, fd: FormData): Promise<PasswordState> {
+  const staff = await requireStaff();
+  if (!rateLimit(`pw:${staff.id}`, 6, 10 * 60_000)) return { error: "tooMany" };
+
+  const current = String(fd.get("current") ?? "");
+  const next = String(fd.get("next") ?? "");
+  const confirm = String(fd.get("confirm") ?? "");
+  if (next.length < 10 || next.length > 200) return { error: "short" };
+  if (next !== confirm) return { error: "mismatch" };
+
+  const [row] = await db.select().from(schema.staff).where(eq(schema.staff.id, staff.id));
+  if (!row || !(await bcrypt.compare(current, row.passwordHash))) return { error: "current" };
+  if (current === next) return { error: "same" };
+
+  await db.update(schema.staff).set({ passwordHash: await bcrypt.hash(next, 12) }).where(eq(schema.staff.id, staff.id));
+  return { ok: true };
 }
